@@ -191,3 +191,29 @@ test('dash-r node_modules with full paths', { skip: true }, function (t) {
     t.end()
   }))
 })
+
+test('split-require', function (t) {
+  t.plan(1)
+  const basedir = path.join(__dirname, 'split-require')
+  const entry = path.join(basedir, 'app.js')
+  const expected = path.join(basedir, 'expected.js')
+  const actual = path.join(basedir, 'actual.js')
+
+  browserify({ entries: entry })
+    .plugin(require('split-require'), {
+      dir: basedir,
+      filename () {
+        return 'actual.js'
+      }
+    })
+    .plugin(commonShake)
+    .bundle(function () {
+      t.is(
+        fs.readFileSync(actual, 'utf8').replace(/\r\n/g, '\n'),
+        fs.readFileSync(expected, 'utf8').replace(/\r\n/g, '\n'),
+        'split-require'
+      )
+      t.end()
+    })
+    .on('error', t.fail)
+})
